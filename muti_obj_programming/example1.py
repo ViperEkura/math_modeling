@@ -1,9 +1,7 @@
 import numpy as np
 import cvxpy as cp
 
-# 清除变量（Python中不需要此操作）
 
-# 定义变量
 x = cp.Variable(2, nonneg=True)  # 非负变量
 
 # 定义目标函数系数
