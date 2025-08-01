@@ -11,7 +11,7 @@ b = np.array([8, 4, 72, -10])
 x = cp.Variable(2, nonneg=True)
 constraints = [a @ x <= b]
 
-# ===== 步骤2: 求解加权目标问题 (0.5*c1 + 0.5*c2) =====
+# ===== 步骤2: 求解线性加权目标问题 (0.5*c1 + 0.5*c2) =====
 obj1 = (0.5 * c1 + 0.5 * c2) @ x
 prob1 = cp.Problem(cp.Minimize(obj1), constraints)
 prob1.solve(cp.CBC)
@@ -22,7 +22,7 @@ f2 = c2 @ sx
 print(f"sol1.x = {sx}, fval1 = {prob1.value:.4f}")
 print(f"f1 = {f1:.4f}, f2 = {f2:.4f}\n")
 
-# ===== 步骤3: 分别求解单目标优化 =====
+# ===== 步骤3: 分别求解单目标优化（理想点法） =====
 # 子问题1: 最小化 c1*x
 prob21 = cp.Problem(cp.Minimize(c1 @ x), constraints)
 prob21.solve()
@@ -38,7 +38,7 @@ fval22 = prob22.value
 print(f"sol21.x = {np.around(sx21, 2)}, fval21 = {fval21:.4f}")
 print(f"sol22.x = {np.around(sx22, 2)}, fval22 = {fval22:.4f}\n")
 
-# ===== 步骤4: 求解最小二乘问题 =====
+# 子问题3:: 求解最小二乘问题
 prob23 = cp.Problem(cp.Minimize((c1 @ x - fval21)**2 + (c2 @ x - fval22)**2), constraints)
 prob23.solve()
 sx23 = x.value
@@ -46,7 +46,7 @@ fval23 = prob23.value
 
 print(f"sol23.x = {sx23}, fval23 = {fval23:.4f}\n")
 
-# ===== 步骤5: 约束c1*x为最小值时最小化c2*x =====
+# ===== 步骤4: 序贯解法 =====
 constraints2 = constraints + [c1 @ x == fval21]
 prob3 = cp.Problem(cp.Minimize(c2 @ x), constraints2)
 prob3.solve()
