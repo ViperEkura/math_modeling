@@ -12,7 +12,7 @@ x = cp.Variable(2, nonneg=True)
 constraints = [a @ x <= b]
 
 # ===== 步骤2: 求解加权目标问题 (0.5*c1 + 0.5*c2) =====
-obj1 = 0.5 * (c1 @ x) + 0.5 * (c2 @ x)
+obj1 = (0.5 * c1 + 0.5 * c2) @ x
 prob1 = cp.Problem(cp.Minimize(obj1), constraints)
 prob1.solve()
 sx = x.value
