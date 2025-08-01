@@ -14,7 +14,7 @@ constraints = [a @ x <= b]
 # ===== 步骤2: 求解加权目标问题 (0.5*c1 + 0.5*c2) =====
 obj1 = (0.5 * c1 + 0.5 * c2) @ x
 prob1 = cp.Problem(cp.Minimize(obj1), constraints)
-prob1.solve()
+prob1.solve(cp.CBC)
 sx = x.value
 f1 = -c1 @ sx
 f2 = c2 @ sx
@@ -35,8 +35,8 @@ prob22.solve()
 sx22 = x.value.copy()  # 保存解
 fval22 = prob22.value
 
-print(f"sol21.x = {sx21}, fval21 = {fval21:.4f}")
-print(f"sol22.x = {sx22}, fval22 = {fval22:.4f}\n")
+print(f"sol21.x = {np.around(sx21, 2)}, fval21 = {fval21:.4f}")
+print(f"sol22.x = {np.around(sx22, 2)}, fval22 = {fval22:.4f}\n")
 
 # ===== 步骤4: 求解最小二乘问题 =====
 prob23 = cp.Problem(cp.Minimize((c1 @ x - fval21)**2 + (c2 @ x - fval22)**2), constraints)

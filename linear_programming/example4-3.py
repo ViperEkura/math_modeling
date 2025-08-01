@@ -70,7 +70,7 @@ for k in k_values:
 if len(feasible_k) == 0:
     print("❌ 所有 k 值均无可行解，请检查参数。")
 else:
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 8), sharex=True)
 
     # --- 上图：k-R 曲线 ---
     ax1.plot(feasible_k, R_values, 'b-o', linewidth=2, markersize=4, label='最小风险 $R$')
@@ -96,6 +96,7 @@ else:
     # 调整子图间距
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.3)  # 增加上下图间距
+    plt.savefig('investment_portfolio.png', dpi=300)
     plt.show()
 
     # =================== 输出信息 ===================
