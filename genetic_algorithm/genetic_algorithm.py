@@ -34,14 +34,14 @@ def initialize_population(w, d):
         c1 = [0] + [x+1 for x in c] + [101]  # 构建初始解（添加起点终点）
         
         # 改良圈算法优化路径
-        for t in range(102):  # 最大优化次数
+        for _ in range(102):  # 最大优化次数
             flag = 0  # 优化标志
             for m in range(100):
                 for n in range(m+2, 101):
                     # 如果交换路径段能缩短总距离
                     if (d[c1[m], c1[n]] + d[c1[m+1], c1[n+1]] < 
                         d[c1[m], c1[m+1]] + d[c1[n], c1[n+1]]):
-                        c1[m+1:n+1] = c1[n:m:-1]  # 执行路径段交换
+                        c1[m+1:n+1] = c1[n:m:-1]  # 执行路径段交换(翻转链接)
                         flag = 1  # 标记已优化
             if flag == 0:  # 如果没有优化则退出
                 J[k, c1] = range(102)  # 记录当前解
@@ -50,9 +50,15 @@ def initialize_population(w, d):
     J[:, 0] = 0  # 确保起点固定
     return J / 102  # 将解编码到[0,1]区间
 
-def genetic_algorithm(d, J, w=50, g=100):
-    """遗传算法主函数"""
-    for k in range(g):  # 进化代数循环
+def genetic_algorithm(d, J, w=50, g=100, p=0.1):
+    """
+        d: 距离矩阵, d[i,j] 表示城市 i 到 j 的距离
+        J: 初始种群，形状为 (w, 102) 的二维数组，每行是一个个体（路径的编码）
+        w: 种群大小(默认50)
+        g: 进化代数(默认100)
+        p: 变异概率(默认0.1)
+    """
+    for _ in range(g):  # 进化代数循环
         A = J.copy()  # 子代种群
         
         # 交叉操作
@@ -62,12 +68,20 @@ def genetic_algorithm(d, J, w=50, g=100):
             # 执行交叉交换
             temp = A[c[i], F:102].copy()
             A[c[i], F:102] = A[c[i+1], F:102]
-            A[c[i+1], F:102] = temp  
+            A[c[i+1], F:102] = temp
+            """
+            个体1: [a0, a1, ..., aF-1, | aF, ..., a101]
+            个体2: [b0, b1, ..., bF-1, | bF, ..., b101]
+            交叉后：
+            新个体1: [a0, a1, ..., aF-1, bF, ..., b101]
+            新个体2: [b0, b1, ..., bF-1, aF, ..., a101]
+            """
         
         # 变异操作
         by = []  # 变异个体索引
         while not by:
-            by = [i for i in range(w) if random.random() < 0.1]  # 按概率选择变异个体
+            # while 确保至少有一个个体被选中变异
+            by = [i for i in range(w) if random.random() < p]  # 按概率选择变异个体
         
         B = A[by, :]  # 需要变异的个体
         for j in range(len(by)):
@@ -78,13 +92,23 @@ def genetic_algorithm(d, J, w=50, g=100):
                 B[j, bw[1]:bw[2]],
                 B[j, bw[0]:bw[1]],
                 B[j, bw[2]:]
-            )) 
+            ))
+            """
+            原始序列：
+                seg0            seg1            seg2            seg3
+            |---------------|----------------|----------------|---------------|
+            0             bw[0]            bw[1]            bw[2]            102
+            
+            变异后序列：
+                seg0            seg2            seg1            seg3
+            |---------------|----------------|----------------|---------------|
+            0             bw[0]       bw[0]+L2              bw[0]+L2+L1      102
+            """
         
         # 合并父代和子代种群
         G = np.vstack((J, A, B))  
         
         # 计算所有个体适应度（路径长度）
-        SG = np.sort(G, axis=1)
         ind1 = np.argsort(G, axis=1)  # 解码路径序列
         num = G.shape[0]
         long = np.zeros(num)
@@ -116,9 +140,8 @@ def main():
     
     d = calculate_distance_matrix(xy)
     
-    w, g = 50, 100
+    w, g = 50, 100      # 种群大小和进化代数
     J = initialize_population(w, d)
-    
     path, flong = genetic_algorithm(d, J, w, g)
     
     print("Path:", path)
